@@ -1,0 +1,101 @@
+$primary: #5225ce;
+$secondary: #001b79;
+$dark: #000000;
+$light: #ffffff;
+$info: rgba(0, 27, 121, 0.25);
+
+// Custom colors
+$accent: #da6d25;
+$success: #0d6efd;
+$warning: #ffc107;
+$danger: #dc3545;
+$reverse: rgba(244, 244, 244, 1);
+$text-gray: #6c757d;
+$theme-colors: (
+  primary: $primary,
+  secondary: $secondary,
+  success: $success,
+  info: $info,
+  warning: $warning,
+  danger: $danger,
+  light: $light,
+  dark: $dark,
+  accent: $accent,
+  reverse: $reverse,
+  text-gray: $text-gray,
+);
+
+@import "bootstrap/scss/bootstrap";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Tajawal", sans-serif;
+  transition: all 100ms ease-in-out;
+}
+
+.accordion-button:not(.collapsed) {
+  color: #ffffff;
+  background-color: #ffffff;
+  color: initial;
+}
+
+.btn:hover {
+  background-color: initial;
+  color: $primary;
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+.drop-down {
+  transform: translate(-50%, 10%) !important;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.no-padding {
+  padding: 0 !important;
+}
+
+.max-content {
+  width: max-content;
+}
+
+.items-center {
+  align-items: center !important;
+}
+.justify-center {
+  justify-content: center !important;
+}
+
+.border-0 {
+  border: none !important;
+}
+
+.outline-0 {
+  outline: none !important;
+}
+
+.z-top {
+  z-index: 1000;
+}
+
+button {
+  cursor: pointer;
+  outline: none;
+  border: none;
+}
+
+body {
+  background-color: $light;
+}
+
+.border {
+  border-color: rgba(82, 37, 206, 0.2) !important;
+}
