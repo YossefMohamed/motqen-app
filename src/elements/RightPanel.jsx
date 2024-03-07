@@ -15,6 +15,7 @@ import {
   checkMistakes,
   correctMistakes,
   setContent,
+  setText,
 } from "../redux/features/api/apiSlice";
 import { useBreakpoint } from "use-breakpoint";
 import { BREAKPOINTS } from "../helpers/constants";
@@ -39,7 +40,7 @@ const RightPanel = () => {
       editable: true,
       onUpdate: ({ editor }) => {
         dispatch(setContent(editor.getHTML()));
-
+        dispatch(setText(editor.getText()));
         dispatch(checkMistakes({ content: editor.getText() }));
       },
       extensions: [

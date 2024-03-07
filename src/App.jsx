@@ -3,14 +3,17 @@ import Layout from "./Layout";
 import Home from "./pages/Home";
 import CheckAndRedirect from "./helpers/CheckAndRedirect";
 import EditorPage from "./pages/Editor";
-import { useEffect } from "react";
-import { useAppDispatch } from "./redux/hooks";
+import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "./redux/hooks";
 import { actionsTypes } from "./helpers/constants";
+import { getCurrentUser } from "./redux/features/api/userSlice";
+import { Spinner } from "react-bootstrap";
+import EndTrial from "./components/EndTrial";
 
 function App() {
   return (
     <BrowserRouter>
-      <CloseHistoryPanel>
+      <WrapperComponent>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<CheckAndRedirect />} />
@@ -23,22 +26,44 @@ function App() {
             <Route path=":id" element={<EditorPage />} />
           </Route>
         </Routes>
-      </CloseHistoryPanel>
+      </WrapperComponent>
     </BrowserRouter>
   );
 }
 
 export default App;
 
-const CloseHistoryPanel = ({ children }) => {
+const WrapperComponent = ({ children }) => {
   const pathname = useLocation();
 
   const dispatch = useAppDispatch();
   const closePanel = () => {
     dispatch({ type: actionsTypes.TOGGLE_HISTORY_PANEL_FALSE });
   };
+  const state = useAppSelector((state) => state);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
+    setLoading(true);
+    !state.user.username && dispatch(getCurrentUser());
     closePanel();
+    setLoading(false);
   }, [pathname]);
-  return children;
+  const [endTrial, setEndTrial] = useState(false);
+
+  useEffect(() => {
+    if (
+      state.checker.text.split(" ").length - 1 > 2500 &&
+      state.user.subscription_plan === "Free"
+    ) {
+      setEndTrial(true);
+    }
+  }, [state.checker.text]);
+  if (loading) return <Spinner />;
+
+  return (
+    <>
+      <EndTrial onClose={() => setEndTrial(false)} show={endTrial} />
+      {children}
+    </>
+  );
 };

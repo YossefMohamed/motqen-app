@@ -1,4 +1,4 @@
-import { Card, Col, Stack } from "react-bootstrap";
+import { Stack } from "react-bootstrap";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -10,35 +10,31 @@ import Color from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
 import { useBreakpoint } from "use-breakpoint";
 import { BREAKPOINTS } from "../helpers/constants";
-import CustomButton from "../components/Button";
-import CopyIcon from "../icons/Copy";
-import DownloadIcon from "../icons/Download";
-import ArrowIcon from "../icons/Arrow";
-import { themeColors } from "../theme";
 import EditorToolbar from "../components/EditorToolbar";
 import Image from "@tiptap/extension-image";
-import MultiOptionDropDown from "../components/MultiOptionDropDown";
 import { useEffect, useState } from "react";
 import Editor from "../components/Editor";
 import {
-  correctMistakes,
   setContent,
+  setText,
   updateDocument,
 } from "../redux/features/api/apiSlice";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { exportToFile } from "../helpers/exportToFile";
 
 const EditorPanel = () => {
   const { breakpoint } = useBreakpoint(BREAKPOINTS, "mobile");
   const isBelowDesktop = breakpoint !== "desktop";
-
+  const state = useAppSelector((state) => state);
   const editor = useEditor({
     content: "",
     editable: true,
+
     onUpdate: ({ editor }) => {
       dispatch(setContent(editor.getHTML()));
       dispatch(updateDocument({ content: editor.getText(), isEditor: true }));
+      dispatch(setText(editor.getText()));
     },
+
     extensions: [
       StarterKit,
       TextStyle,
@@ -64,9 +60,6 @@ const EditorPanel = () => {
       }),
     ],
   });
-
-  const [dropDown, setDropDown] = useState(false);
-  const state = useAppSelector((state) => state);
 
   useEffect(() => {
     if (editor) {

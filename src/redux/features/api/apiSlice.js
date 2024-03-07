@@ -11,7 +11,7 @@ export const createDocument = createAsyncThunk(
       : "/writing-assistant/generate-id/";
 
     const response = await axios({
-      method: "get",
+      method: isEditor ? "get" : "post",
       url: `${API_URL}${url}`,
       headers: {
         "Content-Type": "application/json",
@@ -20,15 +20,18 @@ export const createDocument = createAsyncThunk(
     });
 
     if (isEditor) {
-      await axios({
-        method: "post",
-        url: `${API_URL}${url}/${response.data.uuid}/`,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${BEARER_TOKEN}`,
-        },
-      });
+      await axios.post(
+        `${API_URL}/writing-assistant/create-document/${response.data.uuid}/`,
+        { content: "ad" },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${BEARER_TOKEN}`,
+          },
+        }
+      );
     }
+    console.log(isEditor, response.data);
     return isEditor ? response.data.uuid : response.data.unique_id;
   }
 );
@@ -195,15 +198,15 @@ export const checkerAskAi = createAsyncThunk(
 
 export const updateDocument = createAsyncThunk(
   "checker/updateDocument",
-  async ({ content, isEditor }, { getState }) => {
+  async ({ content, isEditor, title }, { getState }) => {
     const { checker } = getState();
-    const url = isEditor
+    const url = !isEditor
       ? "/grammmer-checker/documents/"
       : "/writing-assistant/document/";
     if (checker.currentDoc === "") throw new Error("No document ID");
     const response = await axios.patch(
       `${API_URL}${url}${checker.currentDoc}/`,
-      { title: content },
+      { title: title || checker.title, content },
       {
         headers: {
           "Content-Type": "application/json",
@@ -233,6 +236,7 @@ export const checkerSlice = createSlice({
 
     title: "مستند جديد",
     content: "",
+    text: "",
   },
   reducers: {
     setCurrentDoc: (state, { payload }) => {
@@ -240,6 +244,12 @@ export const checkerSlice = createSlice({
     },
     setContent: (state, { payload }) => {
       state.content = payload;
+    },
+    setTitle: (state, { payload }) => {
+      state.title = payload;
+    },
+    setText: (state, { payload }) => {
+      state.text = payload;
     },
   }, // Remove empty reducers object
   extraReducers: (builder) => {
@@ -258,7 +268,7 @@ export const checkerSlice = createSlice({
       })
       .addCase(checkMistakes.fulfilled, (state, { payload }) => {
         state.status = "succeeded";
-        state.mistakes = payload;
+        state.mistakes = payload || state.mistakes;
       })
 
       .addCase(checkMistakes.rejected, (state) => {
@@ -291,9 +301,7 @@ export const checkerSlice = createSlice({
         state.error =
           "يتعذر الحصول على رد من المساعد الذكي الآن. يرجى المحاولة مرة أخرى لاحقًا.";
       })
-      .addCase(updateDocument.fulfilled, (state, { payload }) => {
-        state.title = payload.title;
-      })
+
       .addCase(updateDocument.rejected, (state) => {
         state.error =
           "يتعذر تحديث المستند الآن. يرجى المحاولة مرة أخرى لاحقًا.";
@@ -301,8 +309,8 @@ export const checkerSlice = createSlice({
       .addCase(getDocument.fulfilled, (state, { payload }) => {
         state.status = "succeeded";
         state.title = payload.title;
-        state.content = payload.content;
-        state.mistakes = payload.mistakes;
+        state.content = state.content ? state.content : payload.content;
+        state.mistakes = payload.mistakes || state.mistakes;
       })
       .addCase(getDocument.rejected, (state) => {
         state.status = "failed";
@@ -322,7 +330,6 @@ export const checkerSlice = createSlice({
   },
 });
 
-// Remove unnecessary import and incorrect action export
-// export const { addTodo } = checkerSlice.actions;
-export const { setCurrentDoc, setContent } = checkerSlice.actions;
+export const { setCurrentDoc, setContent, setTitle, setText } =
+  checkerSlice.actions;
 export default checkerSlice.reducer;

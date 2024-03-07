@@ -4,10 +4,19 @@ import { useBreakpoint } from "use-breakpoint";
 import { useOnClickOutside } from "usehooks-ts";
 import { BREAKPOINTS } from "../helpers/constants";
 
-function CenteredModal({ children, onClose, show, size, ...props }) {
+function CenteredModal({
+  children,
+  onClose,
+  show,
+  size,
+  outSideClose = true,
+  ...props
+}) {
   const ref = useRef(null);
 
-  useOnClickOutside(ref, onClose);
+  useOnClickOutside(ref, () => {
+    outSideClose && onClose();
+  });
 
   const { breakpoint } = useBreakpoint(BREAKPOINTS, "mobile");
   const isBelowDesktop = breakpoint !== "desktop";
@@ -19,6 +28,7 @@ function CenteredModal({ children, onClose, show, size, ...props }) {
       centered
       size={size}
       show={show}
+      backdrop="static"
     >
       <Modal.Body
         ref={ref}

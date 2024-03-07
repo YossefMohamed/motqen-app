@@ -12,24 +12,29 @@ import { useBreakpoint } from "use-breakpoint";
 import { useRef, useState } from "react";
 import MultiOptionDropDown from "./MultiOptionDropDown";
 import { useOnClickOutside } from "usehooks-ts";
-import { updateDocument } from "../redux/features/api/apiSlice";
+import { setTitle, updateDocument } from "../redux/features/api/apiSlice";
 import { exportToFile } from "../helpers/exportToFile";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Header = () => {
   const dispatch = useAppDispatch();
   const { breakpoint } = useBreakpoint(BREAKPOINTS, "mobile");
   const isBelowDesktop = breakpoint !== "desktop";
   const [exportDropDown, setExportDropDown] = useState(false);
+  const [optionsDropDown, setOptionsDropDown] = useState(false);
   const [dropDownHeader, setDropDownHeader] = useState(false);
   const ref = useRef(null);
+  const refOptions = useRef(null);
   const state = useAppSelector((state) => state);
   const handleClickOutside = () => {
     setExportDropDown(false);
   };
 
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   useOnClickOutside(ref, handleClickOutside);
+  useOnClickOutside(refOptions, () => setOptionsDropDown(false));
   const [dropDownProfile, setDropDownProfile] = useState(false);
   return (
     <Navbar className="border-bottom bg-light py-3 px-4 position-relative">
@@ -67,13 +72,15 @@ const Header = () => {
                 <input
                   type="text"
                   className="text-primary fw-medium border-0 outline-0"
-                  defaultValue={state.checker.title}
+                  value={state.checker.title}
                   placeholder="أكتب اسم للملف"
                   onChange={(e) => {
+                    dispatch(setTitle(e.target.value));
                     dispatch(
                       updateDocument({
-                        content: e.target.value,
-                        isEditor: pathname === "/editor",
+                        title: e.target.value,
+                        isEditor: pathname.includes("/editor"),
+                        content: state.checker.content,
                       })
                     );
                   }}
@@ -105,7 +112,9 @@ const Header = () => {
                       className: "border border-primary px-3 py-3",
                     },
                     {
-                      value: `1/2500 متبقي`,
+                      value: `${
+                        state.checker.text.split(" ").length - 1
+                      }/2500 متبقي`,
                       className: "border border-primary px-3 py-3",
                     },
                   ]}
@@ -136,14 +145,47 @@ const Header = () => {
               }
               iconSuffix={<Ellipse color={themeColors.colors.secondary} />}
               variant="transparent"
+              onClick={() => setOptionsDropDown((prev) => !prev)}
             >
               <Stack
                 direction="horizontal"
                 gap={1}
-                className="fw-medium  align-items-center mx-2 items-center justify-center pt-1"
+                className="fw-medium  align-items-center mx-2 items-center justify-center  position-relative"
+                ref={refOptions}
               >
-                <span>1/2500</span>
+                <span>{state.checker.text.split(" ").length - 1}/2500</span>
                 <span>الاستخدام</span>
+
+                {optionsDropDown && (
+                  <MultiOptionDropDown
+                    options={[
+                      {
+                        value: "المدقق",
+                        className: `px-5 border  ${
+                          !pathname.includes("/editor") && "border-secondary"
+                        }`,
+                      },
+                      {
+                        value: "المحرر",
+                        className: `px-5  border ${
+                          pathname.includes("/editor") && "border-secondary"
+                        }`,
+                      },
+                    ]}
+                    dropDownAction={(value) => {
+                      if (value === "المدقق" && pathname.includes("/editor")) {
+                        navigate("/");
+                        setOptionsDropDown(false);
+                      } else if (
+                        value === "المحرر" &&
+                        !pathname.includes("/editor")
+                      ) {
+                        navigate("/editor");
+                        setOptionsDropDown(false);
+                      }
+                    }}
+                  />
+                )}
               </Stack>
             </CustomButton>
 
@@ -258,13 +300,15 @@ const Header = () => {
               <input
                 type="text"
                 className="text-primary fw-medium border-0 outline-0"
-                defaultValue={state.checker.title}
+                value={state.checker.title}
                 placeholder="أكتب اسم للملف"
                 onChange={(e) => {
+                  dispatch(setTitle(e.target.value));
                   dispatch(
                     updateDocument({
-                      content: e.target.value,
-                      isEditor: pathname === "/editor",
+                      title: e.target.value,
+                      isEditor: pathname.includes("/editor"),
+                      content: state.checker.content,
                     })
                   );
                 }}

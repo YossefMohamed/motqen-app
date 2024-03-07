@@ -49,9 +49,11 @@ const CheckerEditor = ({ editor }) => {
             iconPrefix={<PasteIcon />}
             outline
             onClick={() => {
-              navigator.clipboard.readText().then((text) => {
-                dispatch(setContent(text));
-              });
+              try {
+                navigator.clipboard.readText().then((text) => {
+                  dispatch(setContent(text));
+                });
+              } catch (error) {}
             }}
           >
             ضع النص

@@ -13,7 +13,7 @@ const Home = () => {
   const { breakpoint } = useBreakpoint(BREAKPOINTS, "mobile");
   const dispatch = useAppDispatch();
   const params = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const state = useAppSelector((state) => state);
   useEffect(() => {
@@ -22,8 +22,16 @@ const Home = () => {
     if (params.id && !searchParams.get("new"))
       dispatch(getDocument({ docId: params.id }));
   }, [params]);
+  useEffect(() => {
+    if (state.checker.content) {
+      searchParams.delete("new");
+      setSearchParams(searchParams);
+    }
+  }, [state.checker.content]);
 
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(
+    state.user.subscription_plan === "Free"
+  );
   if (state.checker.status === "loading")
     return (
       <Stack
